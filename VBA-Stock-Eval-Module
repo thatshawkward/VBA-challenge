@@ -122,8 +122,10 @@ Sub StockSummaryTable(sheets As Worksheet, LastRow As Long)
     For i = 2 To LastRow
     
         If (sheets.Cells(i, 12).Value > GreatestTotalVolume) Then
+        
             GreatestTotalVolume = sheets.Cells(i, 12).Value
             sheets.Cells(4, 16).Value = sheets.Cells(i, 9).Value
+            
         End If
         
         If (sheets.Cells(i, 11).Value > GreatestIncrease) Then
