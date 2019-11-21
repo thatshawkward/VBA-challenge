@@ -1,11 +1,15 @@
 Sub StockCalculations()
 
 Dim sheets As Worksheet
+Dim LastRow As Long
 
 For Each sheets In Worksheets
 
-    Call PrintLabels(sheets)
-    Call StockDataLoop(sheets)
+        LastRow = sheets.Cells(Rows.Count, 1).End(xlUp).Row
+        
+        Call PrintLabels(sheets)
+        Call StockDataLoop(sheets, LastRow)
+        Call StockSummaryTable(sheets, LastRow)
 
 Next sheets
 
@@ -30,9 +34,8 @@ End Sub
 
 
 
-Sub StockDataLoop(sheets As Worksheet)
+Sub StockDataLoop(sheets As Worksheet, LastRow As Long)
 
-Dim LastRow As Long
 Dim TickerSymbol As String
 Dim i As Long
 Dim TotalVolume As Double
@@ -44,65 +47,108 @@ DataCalcRow = 2
 
 LastRow = sheets.Cells(Rows.Count, 1).End(xlUp).Row
 
-  For i = 2 To LastRow
-    
-    If (sheets.Cells(i, 3).Value = 0) Then
+    For i = 2 To LastRow
         
-      If (sheets.Cells(i + 1).Value <> sheets.Cells(i, 1).Value) Then
-      
-        TickerSymbol = sheets.Cells(i, 1).Value
+        If (sheets.Cells(i, 3).Value = 0) Then
                 
-      End If
+            If (sheets.Cells(i + 1).Value <> sheets.Cells(i, 1).Value) Then
             
-    ElseIf (sheets.Cells(i + 1, 1).Value = sheets.Cells(i, 1).Value) Then
-            
-      TotalVolume = TotalVolume + sheets.Cells(i, 7).Value
-        
-      If (sheets.Cells(i - 1, 1).Value <> sheets.Cells(i, 1).Value) Then
-        
-        OpenPrice = sheets.Cells(i, 3).Value
-      
-      End If
-            
-      Else
-        
-        TickerSymbol = sheets.Cells(i, 1).Value
-        ClosePrice = sheets.Cells(i, 6).Value
-        TotalVolume = TotalVolume + sheets.Cells(i, 7).Value
-        sheets.Cells(DataCalcRow, 9).Value = TickerSymbol
-        sheets.Cells(DataCalcRow, 12).Value = TotalVolume
-       
-        If (TotalVolume > 0) Then
-            
-          sheets.Cells(DataCalcRow, 10).Value = ClosePrice - OpenPrice
-                
-          If (sheets.Cells(DataCalcRow, 10).Value > 0) Then
-                    
-            sheets.Cells(DataCalcRow, 10).Interior.Color = 3324416
+                TickerSymbol = sheets.Cells(i, 1).Value
+                                
+            End If
                         
-          Else
-                    
-            sheets.Cells(DataCalcRow, 10).Interior.Color = 255
+        ElseIf (sheets.Cells(i + 1, 1).Value = sheets.Cells(i, 1).Value) Then
                         
-          End If
-                    
-          sheets.Cells(DataCalcRow, 11).Value = sheets.Cells(DataCalcRow, 10).Value / OpenPrice
+            TotalVolume = TotalVolume + sheets.Cells(i, 7).Value
                 
-         Else
+            If (sheets.Cells(i - 1, 1).Value <> sheets.Cells(i, 1).Value) Then
                 
-          sheets.Cells(DataCalcRow, 10).Value = 0
-          sheets.Cells(DataCalcRow, 11).Value = 0
-                
-         End If
-           
-         sheets.Cells(DataCalcRow, 11).NumberFormat = "0.00%"
-         TotalVolume = 0
-         DataCalcRow = DataCalcRow + 1
+                OpenPrice = sheets.Cells(i, 3).Value
             
-       End If
-        
-    Next i
+            End If
+                        
+            Else
+                
+                TickerSymbol = sheets.Cells(i, 1).Value
+                ClosePrice = sheets.Cells(i, 6).Value
+                TotalVolume = TotalVolume + sheets.Cells(i, 7).Value
+                sheets.Cells(DataCalcRow, 9).Value = TickerSymbol
+                sheets.Cells(DataCalcRow, 12).Value = TotalVolume
+             
+                If (TotalVolume > 0) Then
+                        
+                    sheets.Cells(DataCalcRow, 10).Value = ClosePrice - OpenPrice
+                                
+                    If (sheets.Cells(DataCalcRow, 10).Value > 0) Then
+                                        
+                        sheets.Cells(DataCalcRow, 10).Interior.Color = 3324416
+                                                
+                    Else
+                                        
+                        sheets.Cells(DataCalcRow, 10).Interior.Color = 255
+                                                
+                    End If
+                                        
+                    sheets.Cells(DataCalcRow, 11).Value = sheets.Cells(DataCalcRow, 10).Value / OpenPrice
+                                
+                 Else
+                                
+                    sheets.Cells(DataCalcRow, 10).Value = 0
+                    sheets.Cells(DataCalcRow, 11).Value = 0
+                                
+                 End If
+                     
+                 sheets.Cells(DataCalcRow, 11).NumberFormat = "0.00%"
+                 TotalVolume = 0
+                 DataCalcRow = DataCalcRow + 1
+                        
+             End If
+                
+        Next i
 
 End Sub
+
+
+Sub StockSummaryTable(sheets As Worksheet, LastRow As Long)
+
+    Dim GreatestTotalVolume As Double
+    Dim GreatestIncrease As Double
+    Dim GreatestDecrease As Double
+    
+    GreatestTotalVolume = 0
+    GreatestIncrease = 0
+    GreatestDecrease = 0
+
+    For i = 2 To LastRow
+    
+        If (sheets.Cells(i, 12).Value > GreatestTotalVolume) Then
+            GreatestTotalVolume = sheets.Cells(i, 12).Value
+            sheets.Cells(4, 16).Value = sheets.Cells(i, 9).Value
+        End If
+        
+        If (sheets.Cells(i, 11).Value > GreatestIncrease) Then
+        
+            GreatestIncrease = sheets.Cells(i, 11).Value
+            sheets.Cells(2, 16) = sheets.Cells(i, 9).Value
+    
+        ElseIf (sheets.Cells(i, 11).Value < GreatestDecrease) Then
+        
+            GreatestDecrease = sheets.Cells(i, 11).Value
+            sheets.Cells(3, 16).Value = sheets.Cells(i, 9).Value
+            
+        End If
+
+
+    Next i
+    
+    sheets.Cells(2, 17).Value = GreatestIncrease
+    sheets.Cells(3, 17).Value = GreatestDecrease
+    sheets.Cells(4, 17).Value = GreatestTotalVolume
+  
+    
+    sheets.Range("Q2:Q3").NumberFormat = "0.00%"
+    sheets.Columns("J:Q").AutoFit
+    
+    End Sub
 
 
